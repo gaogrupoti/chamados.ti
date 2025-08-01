@@ -1,34 +1,179 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Abertura de Chamado</title>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abertura de Chamado</title>
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --text: #1e1e1e;
+      --card: #fff;
+      --border: #ccc;
+      --button: #007bff;
+      --button-hover: #0056b3;
+      --success: #28a745;
+      --error: #dc3545;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #121212;
+        --text: #f0f0f0;
+        --card: #1e1e1e;
+        --border: #444;
+        --button: #0d6efd;
+        --button-hover: #0a58ca;
+        --success: #32cd32;
+        --error: #ff4d4d;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .form-container {
+      background-color: var(--card);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: transparent;
+      color: var(--text);
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--button);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--button);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--button-hover);
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 500;
+    }
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--error);
+    }
+  </style>
 </head>
 <body>
-  <h1>Abrir chamado</h1>
-  <form id="formChamado">
-    <input type="text" id="titulo" placeholder="Título" required><br>
-    <textarea id="descricao" placeholder="Descrição" required></textarea><br>
-    <button type="submit">Enviar</button>
-  </form>
+  <div class="form-container">
+    <h1>Abertura de Chamado</h1>
+    <form id="formChamado">
+      <div class="form-group">
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" name="titulo" placeholder="Ex: Impressora travada" required>
+      </div>
+      <div class="form-group">
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" name="descricao" placeholder="Descreva o problema com detalhes..." required></textarea>
+      </div>
+      <button type="submit">Enviar Chamado</button>
+      <div class="status" id="status"></div>
+    </form>
+  </div>
 
   <script>
     document.getElementById('formChamado').addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const titulo = document.getElementById('titulo').value;
-      const descricao = document.getElementById('descricao').value;
+      const titulo = document.getElementById('titulo').value.trim();
+      const descricao = document.getElementById('descricao').value.trim();
+      const status = document.getElementById('status');
 
-      const res = await fetch('https://script.google.com/macros/s/AKfycby5Eoyxx0bHlvjQqSinjfuepP-G1rCn1_7Ba4wBAsvaRcKXA0lqrwRBxXtBL-8eUrNqPA/exec', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ titulo, descricao })
-      });
+      status.textContent = 'Enviando...';
+      status.className = 'status';
 
-      if (res.ok) {
-        alert('Chamado enviado com sucesso!');
-      } else {
-        alert('Erro ao enviar chamado.');
+      try {
+        const res = await fetch('https://script.google.com/macros/s/AKfycbxPzPps_Id6shJI5bxfNg6w6OyL86sSUq2XmLJS_neoYd0P0Ovi3-c9pjtuZnmgh4ejYw/exec', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo, descricao })
+        });
+
+        if (res.ok) {
+          status.textContent = '✅ Chamado enviado com sucesso!';
+          status.classList.add('success');
+          document.getElementById('formChamado').reset();
+        } else {
+          status.textContent = '❌ Erro ao enviar chamado.';
+          status.classList.add('error');
+        }
+      } catch (err) {
+        status.textContent = '❌ Erro de conexão.';
+        status.classList.add('error');
+        console.error(err);
       }
     });
   </script>
